@@ -1,77 +1,57 @@
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-//#include "scrypt.h"
+#include "scrypt.h"
 
-/*
-static PyObject *scrypt_getpowhash(PyObject *self, PyObject *args)
-{
-    char *output;
+static PyObject *scrypt_getpowhash(PyObject *self, PyObject *args, PyObject *kwargs) {
+    char *outbuf;
     PyObject *value;
+#if PY_MAJOR_VERSION >= 3
+    PyBytesObject *input;
+#else
     PyStringObject *input;
+#endif
     if (!PyArg_ParseTuple(args, "S", &input))
         return NULL;
     Py_INCREF(input);
-    output = PyMem_Malloc(32);
-
-    scrypt_1024_1_1_256((char *)PyString_AsString((PyObject*) input), output);
-    Py_DECREF(input);
-    value = Py_BuildValue("s#", output, 32);
-    PyMem_Free(output);
-    return value;
-}
-*/
-
-static PyObject *scrypt_getpowhash(PyObject *self, PyObject *args, PyObject* kwargs) {
-    char *input;
-    int      inputlen;
-
-    char *outbuf;
-    size_t   outbuflen;
-
-    static char *g2_kwlist[] = {"input", NULL};
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y#", g2_kwlist,
-                                     &input, &inputlen)) {
-        return NULL;
-    }
-
     outbuf = PyMem_Malloc(32);
-    outbuflen = 32;
-
     Py_BEGIN_ALLOW_THREADS;
-    
-    scrypt_1024_1_1_256(input, outbuf);
-
+#if PY_MAJOR_VERSION >= 3
+    scrypt_1024_1_1_256((char *)PyBytes_AsString((PyObject*) input), outbuf);
+#else
+    scrypt_1024_1_1_256((char *)PyString_AsString((PyObject*) input), outbuf);
+#endif
     Py_END_ALLOW_THREADS;
-
-    PyObject *value = NULL;
-    
+    Py_DECREF(input);
+#if PY_MAJOR_VERSION >= 3
     value = Py_BuildValue("y#", outbuf, 32);
-    
+#else
+    value = Py_BuildValue("s#", outbuf, 32);
+#endif
     PyMem_Free(outbuf);
     return value;
 }
 
-
 static PyMethodDef ScryptMethods[] = {
-    { "getPoWHash", (PyCFunction) scrypt_getpowhash, METH_VARARGS | METH_KEYWORDS, "Returns the proof of work hash using scrypt" },
+    { "getPoWHash", scrypt_getpowhash, METH_VARARGS, "Returns the proof of work hash using scrypt" },
     { NULL, NULL, 0, NULL }
 };
 
-static struct PyModuleDef scryptmodule = {
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef LTCScryptModule = {
     PyModuleDef_HEAD_INIT,
     "ltc_scrypt",
-    NULL,
+    "...",
     -1,
     ScryptMethods
 };
 
 PyMODINIT_FUNC PyInit_ltc_scrypt(void) {
-    PyObject *m = PyModule_Create(&scryptmodule);
-
-    if (m == NULL) {
-        return NULL;
-    }
-
-    return m;
+    return PyModule_Create(&LTCScryptModule);
 }
+#else
+
+PyMODINIT_FUNC initltc_scrypt(void) {
+    (void) Py_InitModule("ltc_scrypt", ScryptMethods);
+}
+#endif
