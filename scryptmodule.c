@@ -52,8 +52,6 @@ static PyObject *scrypt_getpowhash(PyObject *self, PyObject *args, PyObject* kwa
     }
 
     outbuf = PyMem_Malloc(32);
-    outbuflen = 32;
-
     Py_BEGIN_ALLOW_THREADS;
     
     scrypt_1024_1_1_256(input, outbuf);
