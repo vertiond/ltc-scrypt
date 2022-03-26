@@ -3,7 +3,7 @@
 
 #include "scrypt.h"
 
-static PyObject *scrypt_getpowhash(PyObject *self, PyObject *args, PyObject *kwargs) {
+static PyObject *scrypt_getpowhash(PyObject *self, PyObject *args) {
     char *outbuf;
     PyObject *value;
 #if PY_MAJOR_VERSION >= 3
@@ -38,7 +38,7 @@ static PyMethodDef ScryptMethods[] = {
 };
 
 #if PY_MAJOR_VERSION >= 3
-static struct PyModuleDef LTCScryptModule = {
+static struct PyModuleDef scryptmodule = {
     PyModuleDef_HEAD_INIT,
     "ltc_scrypt",
     "...",
@@ -47,7 +47,7 @@ static struct PyModuleDef LTCScryptModule = {
 };
 
 PyMODINIT_FUNC PyInit_ltc_scrypt(void) {
-    return PyModule_Create(&LTCScryptModule);
+    return PyModule_Create(&scryptmodule);
 }
 #else
 
